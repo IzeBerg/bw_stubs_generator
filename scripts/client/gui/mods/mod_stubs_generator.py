@@ -14,7 +14,14 @@ def get_stub(generator, obj):
 
 		try:
 			value = getattr(obj, name)
-		except AttributeError:
+		except TypeError as ex:
+			print("TypeError", obj, name, ex)
+			continue
+		except AttributeError as ex:
+			print("AttributeError", obj, name, ex)
+			continue
+		except Exception as ex:
+			print("Exception", obj, name, ex)
 			continue
 
 		repr_value = repr(value)
