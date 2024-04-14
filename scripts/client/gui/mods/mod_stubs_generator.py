@@ -3,7 +3,7 @@ import os
 import sys
 import BigWorld
 
-MODULES_FOLDER = '_stubs/'
+MODULES_FOLDER = os.environ.get('STUBS_PATH', '_stubs/')
 INDENT = '\t'
 
 def get_stub(generator, obj):
