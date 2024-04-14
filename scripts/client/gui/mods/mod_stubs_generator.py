@@ -1,6 +1,7 @@
 import inspect
 import os
 import sys
+import BigWorld
 
 MODULES_FOLDER = '_stubs/'
 INDENT = '\t'
@@ -209,3 +210,4 @@ else:
 			print k, repr(v), k not in EXCLUDES
 			StubModuleGenerator(k).save()
 
+	BigWorld.quit()
