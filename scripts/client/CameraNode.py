@@ -25,7 +25,9 @@ def get_stub(generator, obj):
 			value = getattr(obj, name)
 		except Exception as ex:
 			print('Exception', obj, name, ex)
-			lines.append(stub_unknown(name, None, 'Exception: %s(%s)' % (type(ex).__name__, str(ex))))
+			lines.append('%s:' % type(ex).__name__)
+			lines.extend([l.strip() for l in str(ex).split('\n')])
+			lines.append(stub_unknown(name, None, 'unexpected exception info above'))
 			continue
 
 		repr_value = repr(value)
