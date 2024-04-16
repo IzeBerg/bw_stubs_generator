@@ -10,7 +10,7 @@ class CameraNode(BigWorld.UserDataObject):
 import inspect
 import os
 import sys
-import BigWorld
+import traceback
 
 MODULES_FOLDER = os.environ.get('STUBS_PATH', '_stubs/')
 INDENT = '\t'
@@ -25,30 +25,30 @@ def get_stub(generator, obj):
 			value = getattr(obj, name)
 		except Exception as ex:
 			print('Exception', obj, name, ex)
-			lines.append('%s:' % type(ex).__name__)
-			lines.extend([l.strip() for l in str(ex).split('\n')])
-			lines.append(stub_unknown(name, None, 'unexpected exception info above'))
-			continue
-
-		repr_value = repr(value)
-
-		if inspect.isclass(value):
-			stub = ClassStub(generator, name, value)
-			lines.extend(stub.get_lines())
-		elif inspect.ismethod(value) or inspect.isfunction(value) \
-				or inspect.isbuiltin(value) or inspect.ismemberdescriptor(value) \
-					or inspect.isgenerator(value) or inspect.isdatadescriptor(value) \
-						or 'slot wrapper' in repr_value or 'method' in repr_value:
-			lines.extend(DefStub(generator, name, value).get_lines())
-		elif type(value) in __builtins__.values():
-			lines.extend(Stub(generator, name, value).get_lines())
-		elif 'at 0x' in repr_value:
-			value = value.__class__
-			stub = ClassStub(generator, name, value)
-			lines.extend(stub.get_lines())
-			lines.append('%s = %s()' % (name, stub.get_name()))
+			lines.append('# %s:' % type(ex).__name__)
+			for l in str(ex).split('\n'):
+				lines.append('# %s' % l.strip())
+			lines.append('%s = None  # error description above' % name)
 		else:
-			lines.extend(Stub(generator, name, value).get_lines())
+			repr_value = repr(value)
+
+			if inspect.isclass(value):
+				stub = ClassStub(generator, name, value)
+				lines.extend(stub.get_lines())
+			elif inspect.ismethod(value) or inspect.isfunction(value) \
+					or inspect.isbuiltin(value) or inspect.ismemberdescriptor(value) \
+						or inspect.isgenerator(value) or inspect.isdatadescriptor(value) \
+							or 'slot wrapper' in repr_value or 'method' in repr_value:
+				lines.extend(DefStub(generator, name, value).get_lines())
+			elif type(value) in __builtins__.values():
+				lines.extend(Stub(generator, name, value).get_lines())
+			elif 'at 0x' in repr_value:
+				value = value.__class__
+				stub = ClassStub(generator, name, value)
+				lines.extend(stub.get_lines())
+				lines.append('%s = %s()' % (name, stub.get_name()))
+			else:
+				lines.extend(Stub(generator, name, value).get_lines())
 	return lines
 
 
@@ -58,8 +58,6 @@ def add_indent(data, level):
 		for i in data
 	]
 
-def stub_unknown(name, value, comment):
-	return '%s = %s # %s' % (name, value, comment)
 
 class Stub(object):
 	def __init__(self, generator, name, value):
@@ -200,30 +198,12 @@ EXCLUDES = (
 if __name__ == '__main__':
 	print StubModuleGenerator('_socket').get_string()
 else:
-	# StubModuleGenerator('BigWorld').save()
-	# StubModuleGenerator('ResMgr').save()
-	# StubModuleGenerator('Math').save()
-	# StubModuleGenerator('WoT').save()
-	# StubModuleGenerator('GUI').save()
-	# StubModuleGenerator('_Scaleform').save()
-	# StubModuleGenerator('_WWISE').save()
-	# StubModuleGenerator('Vehicular').save()
-	# StubModuleGenerator('DataLinks').save()
-	# StubModuleGenerator('NetworkFilters').save()
-	# StubModuleGenerator('Svarog').save()
-	# try:
-	# 	StubModuleGenerator('_wulf').save()
-	# except ImportError:
-	# 	pass	
-	# try:
-	# 	StubModuleGenerator('wulf_wrapper').save()
-	# except ImportError:
-	# 	pass
-
 	try:
 		for k, v in sys.modules.items():
 			if k not in EXCLUDES and 'built-in' in repr(v):
 				print(k, repr(v), k not in EXCLUDES)
 				StubModuleGenerator(k).save()
+	except Exception as ex:
+		traceback.print_exception(ex)
 	finally:
 		BigWorld.quit()
