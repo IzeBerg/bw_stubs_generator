@@ -23,14 +23,9 @@ def get_stub(generator, obj):
 
 		try:
 			value = getattr(obj, name)
-		except TypeError as ex:
-			print("TypeError", obj, name, ex)
-			continue
-		except AttributeError as ex:
-			print("AttributeError", obj, name, ex)
-			continue
 		except Exception as ex:
-			print("Exception", obj, name, ex)
+			print('Exception', obj, name, ex)
+			lines.append(stub_unknown(name, None, 'Exception: %s(%s)' % (type(ex).__name__, str(ex))))
 			continue
 
 		repr_value = repr(value)
@@ -61,6 +56,8 @@ def add_indent(data, level):
 		for i in data
 	]
 
+def stub_unknown(name, value, comment):
+	return '%s = %s # %s' % (name, value, comment)
 
 class Stub(object):
 	def __init__(self, generator, name, value):
@@ -221,9 +218,10 @@ else:
 	# except ImportError:
 	# 	pass
 
-	for k, v in sys.modules.items():
-		if k not in EXCLUDES and 'built-in' in repr(v):
-			print k, repr(v), k not in EXCLUDES
-			StubModuleGenerator(k).save()
-
-	BigWorld.quit()
+	try:
+		for k, v in sys.modules.items():
+			if k not in EXCLUDES and 'built-in' in repr(v):
+				print(k, repr(v), k not in EXCLUDES)
+				StubModuleGenerator(k).save()
+	finally:
+		BigWorld.quit()
